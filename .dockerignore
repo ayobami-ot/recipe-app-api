@@ -2,7 +2,7 @@
 .git
 .gitignore
 
-# Docker files to ignore
+# Docker files
 .docker
 
 # Python
