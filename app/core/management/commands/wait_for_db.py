@@ -7,21 +7,23 @@ from psycopg2 import OperationalError as Psycopg2OpError
 
 from django.db.utils import OperationalError
 from django.core.management.base import BaseCommand
+from django.db import connection, OperationalError
 
 
 class Command(BaseCommand):
-    """Django command to wait for database."""
+    help = 'Django command to wait for database'
 
     def handle(self, *args, **options):
         """Entrypoint for command."""
         self.stdout.write('Waiting for database...')
         db_up = False
-        while db_up is False:
+        while not db_up:
             try:
-                self.check(databases=['default'])
+                connection.ensure_connection()
                 db_up = True
-            except (Psycopg2OpError, OperationalError):
-                self.stdout.write('Database unavailable, waiting 1 second...')
+            except OperationalError as e:
+                self.stdout.write(f'Database unavailable: {str(e)}')
+                self.stdout.write('Waiting 1 second before retrying...')
                 time.sleep(1)
 
         self.stdout.write(self.style.SUCCESS('Database available!'))
